@@ -1,0 +1,19 @@
+case:concept:name;concept:name;concept:kernel;timestamp:start;timestamp:end
+algorithm1;gemm_3.12e+05;gemm!('N', 'N', 1.0, ml1, ml2, 0.0, ml4);1.654693067999423e9;1.654693068001118e9
+algorithm1;gemm_2.86e+05;gemm!('N', 'N', 1.0, ml0, ml4, 0.0, ml5);1.654693068001118e9;1.654693068001174e9
+algorithm1;gemm_4.29e+07;gemm!('N', 'N', 1.0, ml5, ml3, 0.0, ml6);1.654693068001174e9;1.654693068003101e9
+algorithm5;gemm_2.64e+05;gemm!('N', 'N', 1.0, ml0, ml1, 0.0, ml4);1.654693068004449e9;1.654693068004539e9
+algorithm5;gemm_4.68e+07;gemm!('N', 'N', 1.0, ml2, ml3, 0.0, ml5);1.654693068004539e9;1.654693068006133e9
+algorithm5;gemm_3.96e+07;gemm!('N', 'N', 1.0, ml4, ml5, 0.0, ml6);1.654693068006133e9;1.654693068007509e9
+algorithm4;gemm_4.68e+07;gemm!('N', 'N', 1.0, ml2, ml3, 0.0, ml4);1.654693068008422e9;1.654693068009958e9
+algorithm4;gemm_2.64e+05;gemm!('N', 'N', 1.0, ml0, ml1, 0.0, ml5);1.654693068009958e9;1.654693068010021e9
+algorithm4;gemm_3.96e+07;gemm!('N', 'N', 1.0, ml5, ml4, 0.0, ml6);1.654693068010021e9;1.654693068011474e9
+algorithm0;gemm_3.12e+05;gemm!('N', 'N', 1.0, ml1, ml2, 0.0, ml4);1.654693068012603e9;1.654693068012654e9
+algorithm0;gemm_3.9e+06;gemm!('N', 'N', 1.0, ml4, ml3, 0.0, ml5);1.654693068012654e9;1.654693068013054e9
+algorithm0;gemm_3.3e+06;gemm!('N', 'N', 1.0, ml0, ml5, 0.0, ml6);1.654693068013054e9;1.654693068014147e9
+algorithm3;gemm_4.68e+07;gemm!('N', 'N', 1.0, ml2, ml3, 0.0, ml4);1.654693068015177e9;1.654693068016926e9
+algorithm3;gemm_3.6e+06;gemm!('N', 'N', 1.0, ml1, ml4, 0.0, ml5);1.654693068016926e9;1.654693068017234e9
+algorithm3;gemm_3.3e+06;gemm!('N', 'N', 1.0, ml0, ml5, 0.0, ml6);1.654693068017234e9;1.654693068018293e9
+algorithm2;gemm_2.64e+05;gemm!('N', 'N', 1.0, ml0, ml1, 0.0, ml4);1.654693068019245e9;1.65469306801931e9
+algorithm2;gemm_3.43e+06;gemm!('N', 'N', 1.0, ml4, ml2, 0.0, ml5);1.65469306801931e9;1.654693068019442e9
+algorithm2;gemm_4.29e+07;gemm!('N', 'N', 1.0, ml5, ml3, 0.0, ml6);1.654693068019442e9;1.654693068020882e9

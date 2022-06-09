@@ -1,0 +1,15 @@
+# cost 6e+06
+
+Y = (A B C D)
+
+tmp2 = (B C)                  # 2e+06
+
+Y = (A tmp2 D)
+
+tmp4 = (A tmp2)               # 2e+06
+
+Y = (tmp4 D)
+
+tmp6 = (tmp4 D)               # 2e+06
+
+Y = tmp6
