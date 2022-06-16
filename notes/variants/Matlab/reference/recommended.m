@@ -1,6 +1,6 @@
-function [res, time] = recommended(A, B, C, D)
+function [res, time] = recommended(X, M, y)
     tic;
-    Y = A*B*C*D;    
+    b = ((transpose(X)*((M)\X))\transpose(X))*((M)\y);    
     time = toc;
-    res = {Y};
+    res = {b};
 end

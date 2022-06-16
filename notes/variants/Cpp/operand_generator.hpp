@@ -3,9 +3,8 @@
 template<typename Gen>
 decltype(auto) operand_generator(Gen && gen)
 {
-    auto A = gen.generate({100,100}, generator::property::random{});
-    auto B = gen.generate({100,100}, generator::property::random{});
-    auto C = gen.generate({100,100}, generator::property::random{});
-    auto D = gen.generate({100,100}, generator::property::random{});
-    return std::make_tuple(A, B, C, D);
+    auto X = gen.generate({100,20}, generator::property::random{}, generator::shape::not_square{});
+    auto M = gen.generate({100,100}, generator::shape::self_adjoint{}, generator::property::spd{});
+    auto y = gen.generate({100,1}, generator::property::random{}, generator::shape::col_vector{}, generator::shape::not_square{});
+    return std::make_tuple(X, M, y);
 }

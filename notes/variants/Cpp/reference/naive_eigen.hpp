@@ -1,11 +1,11 @@
 struct naive_eigen
 {
-template<typename Type_A, typename Type_B, typename Type_C, typename Type_D>
-decltype(auto) operator()(Type_A && A, Type_B && B, Type_C && C, Type_D && D)
+template<typename Type_X, typename Type_M, typename Type_y>
+decltype(auto) operator()(Type_X && X, Type_M && M, Type_y && y)
 {
-    auto Y = (A*B*C*D).eval();
+    auto b = (((X).transpose()*(M).inverse()*X).inverse()*(X).transpose()*(M).inverse()*y).eval();
 
-    typedef std::remove_reference_t<decltype(Y)> return_t;
-    return return_t(Y);                         
+    typedef std::remove_reference_t<decltype(b)> return_t;
+    return return_t(b);                         
 }
 };

@@ -17,7 +17,7 @@ class DiscoverPN:
     """Creates an xes eventlog from the dataframes: case_table and event table
     The eventlog is used to discover process models"""
 
-    def __init__(self, case_table, event_table):
+    def __init__(self, event_table, case_table=None):
         """INPUT: dataframes: case_table and event_table
             Upon initialization, the case and event tables are merged
             and converted to an xes event log format. The dataframes are not stored.
@@ -25,7 +25,8 @@ class DiscoverPN:
         log = event_table.copy()
         convert_timestamp_format(log)
         log = log.sort_values('timestamp:start')
-        log = log.merge(case_table, on='case:concept:name')
+        if case_table:
+            log = log.merge(case_table, on='case:concept:name')
 
         self.event_log = log_converter.apply(log)
         log = None
@@ -51,3 +52,4 @@ class DiscoverPN:
         Returns nothing."""
         gviz = pn_visualizer.apply(net, im, fm)
         pn_visualizer.view(gviz)
+

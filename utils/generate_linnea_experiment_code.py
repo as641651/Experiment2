@@ -6,6 +6,7 @@ import shutil
 import csv
 from datetime import datetime
 import time
+import random
 
 offset = '    '
 
@@ -62,7 +63,10 @@ def write_meta_data(alg_id, kernels, tables, timestamp, variants_path):
     case_csv_writer.writerow(case_row)
 
     concept_names = []
+    #print(alg_id)
     for i in range(len(kernels)):
+        #print(kernels[i])
+        #print(costs[i])
         concept_name = kernels[i].split("!")[0] + "_" + costs[i]
         dt_dummy = datetime.fromtimestamp(dummy_stamp+i).strftime('%Y-%m-%d %H:%M:%S.%f')
         event_meta_row = [case_concept_name, concept_name, costs[i], kernels[i], operations[i], dt_dummy]
@@ -89,13 +93,14 @@ def generate_experiment_variant(variant_path, experiment_path, tables, timestamp
     kernels = []
     for line in lines:
         if search("!", line):
-            stamp_id = "stime{}".format(id)
-            stamps.append(stamp_id)
-            kernels.append(line.strip())
-            t_string = offset+stamp_id+"= time()\n"
-            f2.write(t_string)
-            f2.write(line)
-            id = id+1
+            if not search("blascopy", line):
+                stamp_id = "stime{}".format(id)
+                stamps.append(stamp_id)
+                kernels.append(line.strip())
+                t_string = offset+stamp_id+"= time()\n"
+                f2.write(t_string)
+                f2.write(line)
+                id = id+1
         elif search("return", line):
             stamp_id = "stime{}".format(id)
             stamps.append(stamp_id)
@@ -200,8 +205,40 @@ def generate_runner_code(expression_dir=""):
     shutil.copyfile(operands_src, operands_dst)
 
 
+def generate_runner_competing_code(competing_vars, reps, expression_dir=""):
+    variants_path = [os.path.join(expression_dir,
+                                  "experiments", "{}.jl".format(alg)) for alg in competing_vars]
+    for var_path in variants_path:
+        if not os.path.exists(var_path):
+            return -1
 
+    variants_includes = ""
+    measurements_instance_set = []
+    for var in competing_vars:
+        variants_includes += 'include("experiments/{}.jl")\n'.format(var)
+        measurements_instance_set += [(i, var) for i in range(reps)]
+    random.shuffle(measurements_instance_set)
 
+    runner_template = offset + 'ret,times = {alg}(map(MatrixGenerator.unwrap, map(copy, matrices))...)\n'
+    runner_template += offset + 'write_{alg}_to_eventlog(io, "{alg}_{rep}", times)\n\n'
+    runner_code = ""
+    for measurement in measurements_instance_set:
+        runner_code += runner_template.format(alg=measurement[1], rep=measurement[0])
+
+    runner_path = os.path.join(expression_dir, "run_times_competing.txt")
+    inject = {
+        'variants_includes': variants_includes,
+        'runner_code': runner_code,
+        'runner_path': os.path.abspath(runner_path)
+    }
+
+    template_str = pkg_resources.resource_string(__name__, "templates/runner.jl").decode("UTF-8")
+
+    runner_file = os.path.join(expression_dir,"runner_competing.jl")
+    with open(runner_file, "wt", encoding='utf-8') as output_file:
+        output_file.write(template_str.format(**inject))
+
+    return 1
 
 if __name__ == '__main__':
 

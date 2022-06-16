@@ -1,31 +1,50 @@
 using LinearAlgebra.BLAS
 using LinearAlgebra
 
-function algorithm5(ml0::Array{Float64,2}, ml1::Array{Float64,2}, ml2::Array{Float64,2}, ml3::Array{Float64,2})
+function algorithm5(ml0::Array{Float64,2}, ml1::Array{Float64,2}, ml2::Array{Float64,1})
     start::Float64 = 0.0
     finish::Float64 = 0.0
     Benchmarker.cachescrub()
     start = time_ns()
 
-    # cost: 6e+06 FLOPs
-    # A: ml0, full, B: ml1, full, C: ml2, full, D: ml3, full
-    ml4 = Array{Float64}(undef, 100, 100)
-    # tmp1 = (A B)
-    gemm!('N', 'N', 1.0, ml0, ml1, 0.0, ml4)
+    # cost: 5.91e+05 FLOPs
+    # X: ml0, full, M: ml1, full, y: ml2, full
+    # (L2 L2^T) = M
+    LAPACK.potrf!('L', ml1)
 
-    # C: ml2, full, D: ml3, full, tmp1: ml4, full
-    ml5 = Array{Float64}(undef, 100, 100)
-    # tmp4 = (tmp1 C)
-    gemm!('N', 'N', 1.0, ml4, ml2, 0.0, ml5)
+    # X: ml0, full, y: ml2, full, L2: ml1, lower_triangular
+    # tmp12 = (L2^-1 X)
+    trsm!('L', 'L', 'N', 'N', 1.0, ml1, ml0)
 
-    # D: ml3, full, tmp4: ml5, full
-    ml6 = Array{Float64}(undef, 100, 100)
-    # tmp6 = (tmp4 D)
-    gemm!('N', 'N', 1.0, ml5, ml3, 0.0, ml6)
+    # y: ml2, full, L2: ml1, lower_triangular, tmp12: ml0, full
+    # tmp68 = (L2^-1 y)
+    trsv!('L', 'N', 'N', ml1, ml2)
 
-    # tmp6: ml6, full
-    # Y = tmp6
+    # tmp12: ml0, full, tmp68: ml2, full
+    ml3 = Array{Float64}(undef, 20, 20)
+    # tmp14 = (tmp12^T tmp12)
+    syrk!('L', 'T', 1.0, ml0, 0.0, ml3)
+
+    # tmp12: ml0, full, tmp68: ml2, full, tmp14: ml3, symmetric_lower_triangular
+    # (L15 L15^T) = tmp14
+    LAPACK.potrf!('L', ml3)
+
+    # tmp12: ml0, full, tmp68: ml2, full, L15: ml3, lower_triangular
+    ml4 = Array{Float64}(undef, 20)
+    # tmp21 = (tmp12^T tmp68)
+    gemv!('T', 1.0, ml0, ml2, 0.0, ml4)
+
+    # L15: ml3, lower_triangular, tmp21: ml4, full
+    # tmp23 = (L15^-1 tmp21)
+    trsv!('L', 'N', 'N', ml3, ml4)
+
+    # L15: ml3, lower_triangular, tmp23: ml4, full
+    # tmp24 = (L15^-T tmp23)
+    trsv!('L', 'T', 'N', ml3, ml4)
+
+    # tmp24: ml4, full
+    # b = tmp24
 
     finish = time_ns()
-    return (tuple(ml6), (finish-start)*1e-9)
+    return (tuple(ml4), (finish-start)*1e-9)
 end
