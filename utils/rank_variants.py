@@ -12,7 +12,8 @@ class RankVariants:
         self.alg_list = alg_list
         # self.alg_list.sort()
         for alg in alg_list:
-            t_alg = measurements[measurements['case:concept:name'].str.contains(alg)]
+            t_alg = measurements[measurements.apply(
+                lambda x: x['case:concept:name'].split('_')[0] == alg, axis=1)]
             self.measurements[alg] = list(t_alg['case:duration'])
 
         self.comparision_matrix = {}
@@ -32,7 +33,7 @@ class RankVariants:
         return np.percentile(measurements, [q_max, q_min])
 
     def compareAlgs(self, alg1, alg2, q_max=75, q_min=25):
-        # print(alg1, alg2)
+        #print(alg1, alg2)
         if self.comparision_matrix[alg1][alg2] != -1:
             return self.comparision_matrix[alg1][alg2]
 
@@ -51,14 +52,18 @@ class RankVariants:
             ret = 2  # alg2 is faster than alg1
 
         self.comparision_matrix[alg1][alg2] = ret
-        self.comparision_matrix[alg2][alg1] = ret
+        if ret == 0:
+            self.comparision_matrix[alg2][alg1] = 2
+        elif ret == 2:
+            self.comparision_matrix[alg2][alg1] = 0
+        else:
+            self.comparision_matrix[alg2][alg1] = ret
 
-        # print(ret)
-        # print("\n")
+        #print(ret)
+        #print("\n")
         return ret
 
     def sortAlgs(self, q_max=75, q_min=25):
-
         self.init_comparision_matrix()
 
         p = len(self.alg_list)
@@ -188,8 +193,12 @@ class RankVariants:
                         positions=range(len(y)))
 
         x_lim = ax.get_xlim()
-        #sp = ax.plot(x, y, 'b.', alpha=0.9)
-        #ax.set_xlim(x_lim)
+
+        try:
+            sp = ax.plot(x, y, 'b.', alpha=0.9)
+            ax.set_xlim(x_lim)
+        except:
+            pass
 
         colors = ['#E1E8E8'] * len(y)
 
@@ -224,6 +233,8 @@ class RankVariants:
         ax.get_yaxis().tick_left()
 
         plt.show()
+
+
 
 
 

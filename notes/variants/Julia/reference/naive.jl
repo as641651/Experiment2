@@ -1,14 +1,14 @@
 using LinearAlgebra.BLAS
 using LinearAlgebra
 
-function naive(X::Array{Float64,2}, M::Symmetric{Float64,Array{Float64,2}}, y::Array{Float64,1})
+function naive(M1::Array{Float64,2}, M2::Array{Float64,2}, M3::Array{Float64,2}, M4::UpperTriangular{Float64,Array{Float64,2}}, M5::UpperTriangular{Float64,Array{Float64,2}})
     start::Float64 = 0.0
     finish::Float64 = 0.0
     Benchmarker.cachescrub()
     start = time_ns()
 
-    b = inv(transpose(X)*inv(M)*X)*transpose(X)*inv(M)*y;
+    Y = (M1*transpose(M2)+M3*transpose(M3)+transpose(M4)+transpose(M5));
 
     finish = time_ns()
-    return (tuple(b), (finish-start)*1e-9)
+    return (tuple(Y), (finish-start)*1e-9)
 end

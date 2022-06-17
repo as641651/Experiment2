@@ -1,8 +1,10 @@
 using MatrixGenerator
 
 function operand_generator()
-    X::Array{Float64,2} = generate((100,20), [Shape.General, Properties.Random(-1, 1)])
-    M::Symmetric{Float64,Array{Float64,2}} = generate((100,100), [Shape.Symmetric, Properties.SPD])
-    y::Array{Float64,1} = generate((100,1), [Shape.General, Properties.Random(-1, 1)])
-    return (X, M, y,)
+    M1::Array{Float64,2} = generate((1100,1800), [Shape.General, Properties.Random(-1, 1)])
+    M2::Array{Float64,2} = generate((1100,1800), [Shape.General, Properties.Random(-1, 1)])
+    M3::Array{Float64,2} = generate((1100,1150), [Shape.General, Properties.Random(-1, 1)])
+    M4::UpperTriangular{Float64,Array{Float64,2}} = generate((1100,1100), [Shape.UpperTriangular, Properties.Random(10, 11)])
+    M5::UpperTriangular{Float64,Array{Float64,2}} = generate((1100,1100), [Shape.UpperTriangular, Properties.Random(10, 11)])
+    return (M1, M2, M3, M4, M5,)
 end

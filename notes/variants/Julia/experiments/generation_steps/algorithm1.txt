@@ -1,36 +1,17 @@
-# cost 5.91e+05
+# cost 5.75e+09
 
-b = ((X^T M^-1 X)^-1 X^T M^-1 y)
+Y = ((M1 M2^T) + (M3 M3^T) + M4^T + M5^T)
 
-(L2 L2^T) = M                 # 3.33e+05
+tmp2 = (M3 M3^T)              # 1.39e+09
 
-b = ((X^T L2^-T L2^-1 X)^-1 X^T L2^-T L2^-1 y)
+Y = (tmp2 + (M1 M2^T) + M4^T + M5^T)
 
-tmp68 = (L2^-1 y)             # 1e+04
+tmp6 = (tmp2 + (M1 M2^T))     # 4.36e+09
 
-b = ((X^T L2^-T L2^-1 X)^-1 X^T L2^-T tmp68)
+Y = (tmp6 + M4^T + M5^T)
 
-tmp57 = (X^T L2^-T)
-b = ((tmp57 tmp57^T)^-1 tmp57 tmp68)
+tmp7 = (tmp6 + M5^T)          # 1.21e+06
 
-tmp12 = (L2^-1 X)             # 2e+05
+tmp5 = (tmp7 + M4^T)          # 1.21e+06
 
-b = ((tmp12^T tmp12)^-1 tmp12^T tmp68)
-
-tmp14 = (tmp12^T tmp12)       # 4e+04
-
-b = (tmp14^-1 tmp12^T tmp68)
-
-tmp21 = (tmp12^T tmp68)       # 4e+03
-
-b = (tmp14^-1 tmp21)
-
-(L15 L15^T) = tmp14           # 2.67e+03
-
-b = (L15^-T L15^-1 tmp21)
-
-tmp23 = (L15^-1 tmp21)        # 400
-
-tmp24 = (L15^-T tmp23)        # 400
-
-b = tmp24
+Y = tmp5

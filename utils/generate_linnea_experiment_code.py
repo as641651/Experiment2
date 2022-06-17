@@ -148,7 +148,7 @@ def generate_experiment_code(expression_dir=""):
     tables = set_up_tables(expression_dir)
     timestamp = time.time()
 
-    variants_paths = os.path.join("variants/Julia/generated/*.jl")
+    variants_paths = os.path.join(expression_dir,"variants/Julia/generated/*.jl")
     experiments_dir = os.path.join(expression_dir, "experiments/")
 
     if os.path.exists(experiments_dir):
@@ -173,12 +173,13 @@ def generate_runner_code(expression_dir=""):
 
     runner_file = os.path.join(expression_dir,"runner.jl")
 
-    variants_paths = os.path.join("variants/Julia/generated/*.jl")
+    variants_paths = os.path.join(expression_dir,"variants/Julia/generated/*.jl")
     variants = glob.glob(variants_paths)
     variants_includes = ""
     runner_code = ""
     runner_template = offset+'ret,times = {alg}(map(MatrixGenerator.unwrap, map(copy, matrices))...)\n'
-    runner_template += offset+'write_{alg}_to_eventlog(io, "{alg}", times)\n\n'
+    runner_template += offset+'write_{alg}_to_eventlog(io, "{alg}", times)\n'
+    runner_template += offset + 'temp = rand(25000) # cache trashing\n\n'
 
     for v in variants:
         alg = v.split("/")[-1].split(".jl")[0]
@@ -200,7 +201,7 @@ def generate_runner_code(expression_dir=""):
     with open(runner_file, "wt", encoding='utf-8') as output_file:
         output_file.write(template_str.format(**inject))
 
-    operands_src = "variants/Julia/operand_generator.jl"
+    operands_src = os.path.join(expression_dir,"variants/Julia/operand_generator.jl")
     operands_dst = os.path.join(expression_dir, "operand_generator.jl")
     shutil.copyfile(operands_src, operands_dst)
 
@@ -220,7 +221,8 @@ def generate_runner_competing_code(competing_vars, reps, expression_dir=""):
     random.shuffle(measurements_instance_set)
 
     runner_template = offset + 'ret,times = {alg}(map(MatrixGenerator.unwrap, map(copy, matrices))...)\n'
-    runner_template += offset + 'write_{alg}_to_eventlog(io, "{alg}_{rep}", times)\n\n'
+    runner_template += offset + 'write_{alg}_to_eventlog(io, "{alg}_{rep}", times)\n'
+    runner_template += offset + 'temp = rand(25000) # cache trashing\n\n'
     runner_code = ""
     for measurement in measurements_instance_set:
         runner_code += runner_template.format(alg=measurement[1], rep=measurement[0])

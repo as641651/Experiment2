@@ -58,6 +58,7 @@ if __name__ == "__main__":
     if os.path.exists(expression_dir):
         shutil.rmtree(expression_dir)
     os.makedirs(expression_dir)
+    linnea.config.set_output_code_path(expression_dir)
 
 
     #from input1 import equations

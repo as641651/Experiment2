@@ -1,6 +1,6 @@
-function [res, time] = naive(X, M, y)
+function [res, time] = naive(M1, M2, M3, M4, M5)
     tic;
-    b = inv(transpose(X)*inv(M)*X)*transpose(X)*inv(M)*y;    
+    Y = (M1*transpose(M2)+M3*transpose(M3)+transpose(M4)+transpose(M5));    
     time = toc;
-    res = {b};
+    res = {Y};
 end

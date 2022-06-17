@@ -2,7 +2,7 @@ import sys
 import os
 import shutil
 
-from linnea.algebra.expression import Matrix, Vector, Equal, Times, Inverse, Transpose
+from linnea.algebra.expression import Matrix, Vector, Equal, Times, Inverse, Transpose, Plus
 from linnea.algebra.equations import Equations
 from linnea.algebra.properties import Property
 
@@ -16,24 +16,31 @@ import generate_linnea_experiment_code
 import argparse
 
 
-def matrix_chain_4(m,n,k,l,q):
+def random1(m,n,k):
 
-    A = Matrix("A", (n, m))
-    A.set_property(Property.FULL_RANK)
+    M1 = Matrix("M1", (m, n))
+    M1.set_property(Property.FULL_RANK)
 
-    B = Matrix("B", (m, k))
-    B.set_property(Property.FULL_RANK)
+    M2 = Matrix("M2", (m, n))
+    M2.set_property(Property.FULL_RANK)
 
-    C = Matrix("C", (k, l))
-    C.set_property(Property.FULL_RANK)
-    
-    D = Matrix("D", (l, q))
-    D.set_property(Property.FULL_RANK)
+    M3 = Matrix("M3", (m, k))
+    M3.set_property(Property.FULL_RANK)
 
-    Y = Matrix("Y", (n, q))
+    M4 = Matrix("M4", (m, m))
+    M4.set_property(Property.UPPER_TRIANGULAR)
+
+    M5 = Matrix("M5", (m, m))
+    M5.set_property(Property.UPPER_TRIANGULAR)
+
+    Y = Matrix("Y", (m, m))
 
     # Y = ABCD
-    equations = Equations(Equal(Y, Times(A,B,C,D)))
+    equations = Equations(Equal(Y, Plus(
+                                        Times(M1, Transpose(M2)),
+                                        Times(M3, Transpose(M3)),
+                                        Transpose(M4),
+                                        Transpose(M5))))
 
     return equations
 
@@ -50,16 +57,16 @@ if __name__ == "__main__":
 
     from linnea.algorithm_generation.graph.search_graph import SearchGraph
 
-    parser = argparse.ArgumentParser(description='Input: [m,n,k,l,q]')
+    parser = argparse.ArgumentParser(description='Input: [m,n,k]')
     parser.add_argument('dims', metavar='N', type=int, nargs='+',
-                        help='Dimensions of matrix chain of length 4, Enter atleast 5 integers. ')
+                        help=' Enter atleast 3 integers. ')
 
     dims = parser.parse_args()._get_kwargs()[0][1]
-    if len(dims) != 5:
-        raise Exception("Need 5 dimensions")
-    m,n,k,l,q = dims
+    if len(dims) != 3:
+        raise Exception("Need 3 dimensions")
+    m,n,k = dims
 
-    expression_dir = os.path.join(this_dir,'experiments','{}_{}_{}_{}_{}/'.format(m,n,k,l,q))
+    expression_dir = os.path.join(this_dir,'experiments','{}_{}_{}/'.format(m,n,k))
     if os.path.exists(expression_dir):
         shutil.rmtree(expression_dir)
     os.makedirs(expression_dir)
@@ -71,7 +78,7 @@ if __name__ == "__main__":
     # import linnea.examples.examples
     # equations = linnea.examples.examples.Example001().eqns
 
-    equations = matrix_chain_4(m,n,k,l,q)
+    equations = random1(m,n,k)
     graph = SearchGraph(equations)
     graph.generate(time_limit=60,
                    merging=True,

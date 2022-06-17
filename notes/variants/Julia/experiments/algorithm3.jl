@@ -1,50 +1,36 @@
 using LinearAlgebra.BLAS
 using LinearAlgebra
 
-function algorithm3(ml0::Array{Float64,2}, ml1::Array{Float64,2}, ml2::Array{Float64,1})
+function algorithm3(ml0::Array{Float64,2}, ml1::Array{Float64,2}, ml2::Array{Float64,2}, ml3::Array{Float64,2}, ml4::Array{Float64,2})
     start::Float64 = 0.0
     finish::Float64 = 0.0
     Benchmarker.cachescrub()
     start = time_ns()
 
-    # cost: 5.91e+05 FLOPs
-    # X: ml0, full, M: ml1, full, y: ml2, full
-    # (L2 L2^T) = M
-    LAPACK.potrf!('L', ml1)
+    # cost: 5.75e+09 FLOPs
+    # M1: ml0, full, M2: ml1, full, M3: ml2, full, M4: ml3, full, M5: ml4, full
+    ml5 = Array{Float64}(undef, 1100, 1100)
+    # tmp2 = (M3 M3^T)
+    syrk!('L', 'N', 1.0, ml2, 0.0, ml5)
 
-    # X: ml0, full, y: ml2, full, L2: ml1, lower_triangular
-    # tmp12 = (L2^-1 X)
-    trsm!('L', 'L', 'N', 'N', 1.0, ml1, ml0)
+    # M1: ml0, full, M2: ml1, full, M4: ml3, full, M5: ml4, full, tmp2: ml5, symmetric_lower_triangular
+    for i = 1:1100-1;
+        view(ml5, i, i+1:1100)[:] = view(ml5, i+1:1100, i);
+    end;
+    # tmp13 = (tmp2 + M5^T)
+    ml5 .+= transpose(ml4)
 
-    # y: ml2, full, L2: ml1, lower_triangular, tmp12: ml0, full
-    ml3 = Array{Float64}(undef, 20, 20)
-    # tmp14 = (tmp12^T tmp12)
-    syrk!('L', 'T', 1.0, ml0, 0.0, ml3)
+    # M1: ml0, full, M2: ml1, full, M4: ml3, full, tmp13: ml5, full
+    # tmp7 = (tmp13 + (M1 M2^T))
+    gemm!('N', 'T', 1.0, ml0, ml1, 1.0, ml5)
 
-    # y: ml2, full, L2: ml1, lower_triangular, tmp12: ml0, full, tmp14: ml3, symmetric_lower_triangular
-    # tmp68 = (L2^-1 y)
-    trsv!('L', 'N', 'N', ml1, ml2)
+    # M4: ml3, full, tmp7: ml5, full
+    # tmp5 = (tmp7 + M4^T)
+    ml5 .+= transpose(ml3)
 
-    # tmp12: ml0, full, tmp14: ml3, symmetric_lower_triangular, tmp68: ml2, full
-    # (L15 L15^T) = tmp14
-    LAPACK.potrf!('L', ml3)
-
-    # tmp12: ml0, full, tmp68: ml2, full, L15: ml3, lower_triangular
-    ml4 = Array{Float64}(undef, 20)
-    # tmp21 = (tmp12^T tmp68)
-    gemv!('T', 1.0, ml0, ml2, 0.0, ml4)
-
-    # L15: ml3, lower_triangular, tmp21: ml4, full
-    # tmp23 = (L15^-1 tmp21)
-    trsv!('L', 'N', 'N', ml3, ml4)
-
-    # L15: ml3, lower_triangular, tmp23: ml4, full
-    # tmp24 = (L15^-T tmp23)
-    trsv!('L', 'T', 'N', ml3, ml4)
-
-    # tmp24: ml4, full
-    # b = tmp24
+    # tmp5: ml5, full
+    # Y = tmp5
 
     finish = time_ns()
-    return (tuple(ml4), (finish-start)*1e-9)
+    return (tuple(ml5), (finish-start)*1e-9)
 end
