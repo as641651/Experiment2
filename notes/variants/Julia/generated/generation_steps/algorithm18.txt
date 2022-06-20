@@ -1,0 +1,23 @@
+# cost 5.75e+09
+
+Y = ((M1 M2^T) + (M3 M3^T) + M4^T + M5^T)
+
+tmp1 = (M1 M2^T)              # 4.36e+09
+
+Y = (tmp1 + (M3 M3^T) + M4^T + M5^T)
+
+tmp2 = (M3 M3^T)              # 1.39e+09
+
+Y = (tmp1 + tmp2 + M4^T + M5^T)
+
+tmp3 = (tmp1 + M5^T)          # 1.21e+06
+
+Y = (tmp2 + tmp3 + M4^T)
+
+tmp7 = (tmp2 + tmp3)          # 2.42e+06
+
+Y = (tmp7 + M4^T)
+
+tmp5 = (tmp7 + M4^T)          # 1.21e+06
+
+Y = tmp5
