@@ -44,7 +44,6 @@ if __name__ == "__main__":
     import linnea.config
 
     linnea.config.set_output_code_path(".")
-    linnea.config.experiment_configuration["threads"] = "4"
     linnea.config.experiment_configuration["repetitions"] = 10
     linnea.config.init()
 
@@ -53,11 +52,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Input: [m,n,k,l,q]')
     parser.add_argument('dims', metavar='N', type=int, nargs='+',
                         help='Dimensions of matrix chain of length 4, Enter atleast 5 integers. ')
+    parser.add_argument('--threads', type=int, default=4,
+                        help= 'Num threads')
 
     dims = parser.parse_args()._get_kwargs()[0][1]
+    threads = parser.parse_args()._get_kwargs()[1][1]
     if len(dims) != 5:
         raise Exception("Need 5 dimensions")
     m,n,k,l,q = dims
+    linnea.config.experiment_configuration["threads"] = str(threads)
 
     expression_dir = os.path.join(this_dir,'experiments','{}_{}_{}_{}_{}/'.format(m,n,k,l,q))
     if os.path.exists(expression_dir):
@@ -89,7 +92,9 @@ if __name__ == "__main__":
 
     ## Generate Experiment Code
     generate_linnea_experiment_code.generate_experiment_code(expression_dir)
-    generate_linnea_experiment_code.generate_runner_code(expression_dir)
+    generate_linnea_experiment_code.generate_runner_code(expression_dir,
+                                                         threads=threads,
+                                                         backend_template='slrum_submit.sh')
     ##generate min flops runner code. read case table and find alg with min flops
 
     print("Generated Variants.")

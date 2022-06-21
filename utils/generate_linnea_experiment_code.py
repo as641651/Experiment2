@@ -218,6 +218,10 @@ def generate_runner_code(expression_dir="", threads=4, backend_template=None):
     operands_dst = os.path.join(expression_dir, "operand_generator.jl")
     shutil.copyfile(operands_src, operands_dst)
 
+    logs_dir = os.path.join(expression_dir, "logs")
+    if not os.path.exists(logs_dir):
+        os.mkdir(logs_dir)
+
 
 def generate_runner_competing_code(competing_vars, reps, threads=4, expression_dir=""):
     variants_path = [os.path.join(expression_dir,
