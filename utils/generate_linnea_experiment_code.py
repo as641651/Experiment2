@@ -169,9 +169,10 @@ def generate_experiment_code(expression_dir=""):
     #ret,times = algorithm0(map(MatrixGenerator.unwrap, map(copy, matrices))...)
     #write_variant0_to_eventlog(io, "V0", times)
 
-def generate_runner_code(expression_dir=""):
+def generate_runner_code(expression_dir="", threads=4, backend_template=None):
 
     runner_file = os.path.join(expression_dir,"runner.jl")
+    backend_submit_file = os.path.join(expression_dir, "submit.sh")
 
     variants_paths = os.path.join(expression_dir,"variants/Julia/generated/*.jl")
     variants = glob.glob(variants_paths)
@@ -193,20 +194,32 @@ def generate_runner_code(expression_dir=""):
     inject = {
         'variants_includes': variants_includes,
         'runner_code': runner_code,
-        'runner_path':runner_path
+        'runner_path':runner_path,
+        'threads':threads
     }
 
     template_str = pkg_resources.resource_string(__name__, "templates/runner.jl").decode("UTF-8")
-
     with open(runner_file, "wt", encoding='utf-8') as output_file:
         output_file.write(template_str.format(**inject))
+
+
+    if backend_template:
+        submit_template = "templates/{}".format(backend_template)
+        inject = {
+            'job_name': "{}_T{}".format(expression_dir.split('/')[-2], threads),
+            'threads': threads,
+            'memory': str(int(10240/threads))
+        }
+        submit_template_str = pkg_resources.resource_string(__name__, submit_template).decode("UTF-8")
+        with open(backend_submit_file, "wt", encoding='utf-8') as output_file:
+            output_file.write(submit_template_str.format(**inject))
 
     operands_src = os.path.join(expression_dir,"variants/Julia/operand_generator.jl")
     operands_dst = os.path.join(expression_dir, "operand_generator.jl")
     shutil.copyfile(operands_src, operands_dst)
 
 
-def generate_runner_competing_code(competing_vars, reps, expression_dir=""):
+def generate_runner_competing_code(competing_vars, reps, threads=4, expression_dir=""):
     variants_path = [os.path.join(expression_dir,
                                   "experiments", "{}.jl".format(alg)) for alg in competing_vars]
     for var_path in variants_path:
@@ -231,7 +244,8 @@ def generate_runner_competing_code(competing_vars, reps, expression_dir=""):
     inject = {
         'variants_includes': variants_includes,
         'runner_code': runner_code,
-        'runner_path': os.path.abspath(runner_path)
+        'runner_path': os.path.abspath(runner_path),
+        'threads':threads
     }
 
     template_str = pkg_resources.resource_string(__name__, "templates/runner.jl").decode("UTF-8")

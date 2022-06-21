@@ -1,6 +1,6 @@
 using MatrixGenerator
 using LinearAlgebra.BLAS
-BLAS.set_num_threads(4)
+BLAS.set_num_threads({threads})
 
 {variants_includes}
 include("operand_generator.jl")

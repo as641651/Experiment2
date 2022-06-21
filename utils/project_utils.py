@@ -12,3 +12,4 @@ def get_trace_durations(event_table):
         'timestamp:end': 'case:timestamp:end',
     })
     return dfm
+
