@@ -25,6 +25,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    generate_linnea_experiment_code.generate_runner_competing_code(args.algs, args.rep, args.id, args.threads)
+    generate_linnea_experiment_code.generate_runner_competing_code(args.algs, args.rep, args.id, args.threads, this_dir)
 
 
