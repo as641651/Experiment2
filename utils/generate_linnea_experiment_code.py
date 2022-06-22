@@ -7,6 +7,7 @@ import csv
 from datetime import datetime
 import time
 import random
+import project_utils
 
 offset = '    '
 
@@ -169,6 +170,7 @@ def generate_experiment_code(expression_dir=""):
     #ret,times = algorithm0(map(MatrixGenerator.unwrap, map(copy, matrices))...)
     #write_variant0_to_eventlog(io, "V0", times)
 
+
 def generate_runner_code(expression_dir="", threads=4, backend_template=None):
 
     runner_file = os.path.join(expression_dir,"runner.jl")
@@ -190,7 +192,7 @@ def generate_runner_code(expression_dir="", threads=4, backend_template=None):
     # print(variants_includes)
     # print(runner_code)
 
-    runner_path = os.path.join(expression_dir,"run_times.txt")
+    runner_path = os.path.join(expression_dir,"run_times.csv")
     inject = {
         'variants_includes': variants_includes,
         'runner_code': runner_code,
@@ -198,9 +200,7 @@ def generate_runner_code(expression_dir="", threads=4, backend_template=None):
         'threads':threads
     }
 
-    template_str = pkg_resources.resource_string(__name__, "templates/runner.jl").decode("UTF-8")
-    with open(runner_file, "wt", encoding='utf-8') as output_file:
-        output_file.write(template_str.format(**inject))
+    project_utils.generate_script_from_template("templates/runner.jl", runner_file,inject)
 
 
     if backend_template:
@@ -210,9 +210,11 @@ def generate_runner_code(expression_dir="", threads=4, backend_template=None):
             'threads': threads,
             'memory': str(int(10240/threads))
         }
-        submit_template_str = pkg_resources.resource_string(__name__, submit_template).decode("UTF-8")
-        with open(backend_submit_file, "wt", encoding='utf-8') as output_file:
-            output_file.write(submit_template_str.format(**inject))
+        project_utils.generate_script_from_template(submit_template, backend_submit_file, inject)
+
+    project_utils.generate_script_from_template("templates/generate-measurements-script.py",
+                                                os.path.join(expression_dir, "generate-measurements-script.py"),
+                                                {})
 
     operands_src = os.path.join(expression_dir,"variants/Julia/operand_generator.jl")
     operands_dst = os.path.join(expression_dir, "operand_generator.jl")
@@ -223,9 +225,10 @@ def generate_runner_code(expression_dir="", threads=4, backend_template=None):
         os.mkdir(logs_dir)
 
 
-def generate_runner_competing_code(competing_vars, reps, threads=4, expression_dir=""):
+def generate_runner_competing_code(competing_vars, reps, run_id, threads=4, expression_dir=""):
     variants_path = [os.path.join(expression_dir,
                                   "experiments", "{}.jl".format(alg)) for alg in competing_vars]
+
     for var_path in variants_path:
         if not os.path.exists(var_path):
             return -1
@@ -244,7 +247,7 @@ def generate_runner_competing_code(competing_vars, reps, threads=4, expression_d
     for measurement in measurements_instance_set:
         runner_code += runner_template.format(alg=measurement[1], rep=measurement[0])
 
-    runner_path = os.path.join(expression_dir, "run_times_competing.txt")
+    runner_path = os.path.join(expression_dir, "run_times_competing_{}.csv".format(run_id))
     inject = {
         'variants_includes': variants_includes,
         'runner_code': runner_code,
@@ -254,7 +257,7 @@ def generate_runner_competing_code(competing_vars, reps, threads=4, expression_d
 
     template_str = pkg_resources.resource_string(__name__, "templates/runner.jl").decode("UTF-8")
 
-    runner_file = os.path.join(expression_dir,"runner_competing.jl")
+    runner_file = os.path.join(expression_dir,"runner_competing_{}.jl".format(run_id))
     with open(runner_file, "wt", encoding='utf-8') as output_file:
         output_file.write(template_str.format(**inject))
 
