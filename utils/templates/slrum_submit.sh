@@ -13,7 +13,7 @@
 #SBATCH --time 03:00:00
 #SBATCH --cpus-per-task={threads}
 #SBATCH --threads-per-core=1
-#SBATCH --exclusive
+##SBATCH --exclusive
 
 source $HOME/.analyzer
 lscpu
