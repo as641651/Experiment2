@@ -216,6 +216,10 @@ def generate_runner_code(expression_dir="", threads=4, backend_template=None):
                                                 os.path.join(expression_dir, "generate-measurements-script.py"),
                                                 {})
 
+    project_utils.generate_script_from_template("templates/compute-ranks.py",
+                                                os.path.join(expression_dir, "compute-ranks.py"),
+                                                {})
+
     operands_src = os.path.join(expression_dir,"variants/Julia/operand_generator.jl")
     operands_dst = os.path.join(expression_dir, "operand_generator.jl")
     shutil.copyfile(operands_src, operands_dst)
@@ -241,11 +245,11 @@ def generate_runner_competing_code(competing_vars, reps, run_id, threads=4, expr
     random.shuffle(measurements_instance_set)
 
     runner_template = offset + 'ret,times = {alg}(map(MatrixGenerator.unwrap, map(copy, matrices))...)\n'
-    runner_template += offset + 'write_{alg}_to_eventlog(io, "{alg}_{rep}", times)\n'
+    runner_template += offset + 'write_{alg}_to_eventlog(io, "{alg}_{run_id}{rep}", times)\n'
     runner_template += offset + 'temp = rand(25000) # cache trashing\n\n'
     runner_code = ""
     for measurement in measurements_instance_set:
-        runner_code += runner_template.format(alg=measurement[1], rep=measurement[0])
+        runner_code += runner_template.format(alg=measurement[1], run_id=run_id, rep=measurement[0])
 
     runner_path = os.path.join(expression_dir, "run_times_competing_{}.csv".format(run_id))
     inject = {

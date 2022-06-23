@@ -5,7 +5,7 @@ import shutil
 
 
 class Runner:
-    def __init__(self, name, script_path, args):
+    def __init__(self, name, expression_dir, args, threads=4, backend=None):
         """
         This class handles the code generation and execution of the variant codes.
         The generated event data can be obtained as a pandas dataframe.
@@ -13,7 +13,7 @@ class Runner:
         Requirements:
 
         It is assumed that there exists a script file that generates variant codes
-        for a given opoerand sizes. The operand sizes are input as command line args
+        for a given oopoerand sizes. The operand sizes are input as command line args
             e.g. run of script file: python generate.py 10 10 10 10 12
 
         After running the script file, inside the folder "experiments", which is in
@@ -42,108 +42,60 @@ class Runner:
 
         """
         self.name = name
-        self.script_path = script_path
-        self.script_dir = os.path.dirname(self.script_path)
-        self.args = args
-        self.call = ["python", self.script_path] + self.args
-        self.exp_dir = os.path.join(self.script_dir,
-                                    "experiments",
-                                    "_".join(self.args))
+        self.expression_dir = expression_dir
+        self.threads = threads
 
-    def generate_run_experiments(self, bRun=True, bGenerate=True):
+        self.script_path = os.path.join(self.expression_dir, "generate-variants-linnea.py")
+        self.args = args
+        self.args_dir = os.path.join(self.expression_dir,
+                                     "experiments",
+                                     "_".join(self.args))
+
+        self.backend = backend
+
+    def generate_experiments(self):
         """
-        generates and run experiments for a given set of valid arguments
+        generates experiments for a given set of valid arguments
         that can be given as input to the script file.
             e.g. in,  python generate.py 10 10 10 10 12
             ['10','10','10','10','12'] would be the argument list.
 
-
-        optional args:
-            bGenerate: Runs the script file if set to True. The "argument folder"
-                is re-generated.
-
-            bRun: if set to False, it is assumed that the "argument folder"
-            has been already generated.
-
+        Output: Return code == 0 implies successful completion
         """
 
-        if bGenerate:
-            completed_proccess = subprocess.run(self.call)
-            if completed_proccess.returncode == 0:
-                if bRun:
-                    # Generate and run
-                    return self.run_experiments()
-                else:
-                    return 2  # only Generate
-            else:
-                return -1
-        elif bRun:
-            # Run without generating
-            if os.path.exists(self.exp_dir):
-                return self.run_experiments()
-        return -1
+        if not self.backend:
+            call = ["python", self.script_path] + self.args + ["--threads={}".format(self.threads)]
+            completed_proccess = subprocess.run(call)
+            ret = completed_proccess.returncode
+        else:
+            ret = self.backend.generate_experiments(self.expression_dir, self.args, self.threads)
+
+        return ret
 
     def run_experiments(self):
         """
         executes the runner file, which generates run_times.txt
         """
-        runner_path = os.path.join(self.exp_dir, "runner.jl")
+        runner_path = os.path.join(self.args_dir, "runner.jl")
+        if not self.backend:
+            if os.path.exists(self.args_dir):
+                print("Running Experiments locally")
+                completed_proccess = subprocess.run(["julia", runner_path])
+                if completed_proccess.returncode == 0:
+                    print("Experiments completed locally")
+                    return 0  # Ran experiment
+        else:
+            ret = self.backend.run_julia_script(runner_path)
+            if ret == 0:
+                print("Running experiments in the backend.")
+                return 0
 
-        if os.path.exists(runner_path):
-            print("Running Experiments")
-            completed_proccess = subprocess.run(["julia", runner_path])
-            if completed_proccess.returncode == 0:
-                print("Experiments completed")
-                return 1  # Ran experiment
         return -1
-
-    def get_case_table(self):
-        """get case table"""
-        if os.path.exists(self.exp_dir):
-            return self.read_log(os.path.join(self.exp_dir, "case_table.csv"))
-        return -1
-
-    def get_event_meta_table(self):
-        """get event table without actual execution times."""
-        if os.path.exists(self.exp_dir):
-            return self.read_log(os.path.join(self.exp_dir, "event_meta_table.csv"))
-        return -1
-
-    def get_event_runtime_table(self):
-        """get event table with actual execution times."""
-        if os.path.exists(self.exp_dir):
-            return self.read_log(os.path.join(self.exp_dir, "run_times.txt"))
-        return -1
-
-    def get_all_tables(self, meta=True):
-        """get all tables"""
-        case_table = self.get_case_table()
-        event_meta_table = None
-        if meta:
-            event_meta_table = self.get_event_meta_table()
-        event_runtime_table = self.get_event_runtime_table()
-        return (case_table, event_meta_table, event_runtime_table)
-
-    def read_log(self, log_path):
-        if os.path.exists(log_path):
-            df = pd.read_csv(log_path, sep=';')
-            return df
-        return -1
-
-    def isGenerated(self):
-        if os.path.exists(self.exp_dir):
-            return True
-        return False
-
-    def isRun(self):
-        if os.path.exists(os.path.join(self.exp_dir, "run_times.txt")):
-            return True
-        return False
 
     def clean(self):
         """remove arguments folder"""
-        if os.path.exists(self.exp_dir):
-            shutil.rmtree(self.exp_dir)
+        if os.path.exists(self.args_dir):
+            shutil.rmtree(self.args_dir)
         else:
             return -1
 

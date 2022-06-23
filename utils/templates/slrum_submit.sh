@@ -17,7 +17,7 @@
 
 source $HOME/.analyzer
 lscpu
-julia $1
+$1 $2
 
 
 
