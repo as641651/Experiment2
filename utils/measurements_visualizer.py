@@ -29,7 +29,7 @@ class MeasurementsVisualizer:
         plt.subplots_adjust(hspace=hspace)
         plt.show()
 
-    def show_measurements_boxplots(self, alg_list=None, outliers=False):
+    def show_measurements_boxplots(self, alg_list=None, outliers=False, scale=1.5):
         if not alg_list:
             alg_list = self.alg_seq_h0
         # alg_list.sort()
@@ -40,7 +40,7 @@ class MeasurementsVisualizer:
             x.append(self.measurements[alg])
             y.append(alg)
 
-        fig = plt.figure(figsize=(10, 7))
+        fig = plt.figure(figsize=(10, scale*len(alg_list)))
         ax = fig.add_subplot(111)
 
         # # Creating axes instance

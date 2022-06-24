@@ -39,7 +39,6 @@ if __name__ == "__main__":
     import linnea.config
 
     linnea.config.set_output_code_path(".")
-    linnea.config.experiment_configuration["threads"] = "4"
     linnea.config.experiment_configuration["repetitions"] = 10
     linnea.config.init()
 
@@ -47,12 +46,16 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Input: [m,n]')
     parser.add_argument('dims', metavar='N', type=int, nargs='+',
-                        help='Dimensions of matrix chain of length 4, Enter atleast 5 integers. ')
+                        help='Generalized least square problem, Enter atleast 2 integers. ')
+    parser.add_argument('--threads', type=int, default=4,
+                        help= 'Num threads')
 
     dims = parser.parse_args()._get_kwargs()[0][1]
+    threads = parser.parse_args()._get_kwargs()[1][1]
     if len(dims) != 2:
         raise Exception("Need 2 dimensions")
     m,n = dims
+    linnea.config.experiment_configuration["threads"] = str(threads)
 
     expression_dir = os.path.join(this_dir,'experiments','{}_{}/'.format(m,n))
     if os.path.exists(expression_dir):
@@ -68,7 +71,7 @@ if __name__ == "__main__":
 
     equations = generalized_least_squares(m,n)
     graph = SearchGraph(equations)
-    graph.generate(time_limit=10,
+    graph.generate(time_limit=60,
                    merging=True,
                    dead_ends=True,
                    pruning_factor=100.0)
@@ -84,7 +87,11 @@ if __name__ == "__main__":
 
     ## Generate Experiment Code
     generate_linnea_experiment_code.generate_experiment_code(expression_dir)
-    generate_linnea_experiment_code.generate_runner_code(expression_dir)
+    generate_linnea_experiment_code.generate_runner_code(expression_dir,
+                                                         threads=threads,
+                                                         backend_template='slrum_submit.sh')
     ##generate min flops runner code. read case table and find alg with min flops
 
     print("Generated Variants.")
+
+

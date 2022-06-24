@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import glob
 
 
 class DataCollector:
@@ -45,3 +46,29 @@ class DataCollector:
 
     def get_mean_ranks(self):
         return self.get_table("mean_ranks.csv")
+
+    def delete_competing_measurements(self):
+        files = glob.glob(os.path.join(self.local_data_dir, "*_competing_*.csv"))
+        for f in files:
+            if os.path.exists(f):
+                print("removing ", f)
+                os.remove(f)
+        if self.backend:
+            cmd = "rm -rf {arg_dir}/*_competing_*".format(arg_dir=self.backend_data_dir)
+            ret = self.backend.run_cmd(cmd)
+            return ret
+        return 0
+
+    def delete_ranks(self):
+        files = glob.glob(os.path.join(self.local_data_dir, "*ranks.csv"))
+        for f in files:
+            if os.path.exists(f):
+                print("removing ", f)
+                os.remove(f)
+        if self.backend:
+            cmd = "rm -rf {arg_dir}/*ranks.csv".format(arg_dir=self.backend_data_dir)
+            ret = self.backend.run_cmd(cmd)
+            return ret
+        return 0
+
+

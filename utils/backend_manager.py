@@ -4,14 +4,18 @@ import os
 
 
 class BackendManager:
-    def __init__(self, server, uname, app, interactive=False):
+    def __init__(self, server, uname, submit_cmd=None):
         self.server = server
         self.uname = uname
-        self.app = app
+        self.submit_cmd = submit_cmd
+
+        self.interactive = True
+        if self.submit_cmd:
+            self.interactive = False
+
         self.client = SSHClient()
         self.client.set_missing_host_key_policy(AutoAddPolicy())
         self.connected = False
-        self.interactive = interactive
 
     def connect(self):
         self.client.connect(self.server, username=self.uname)
@@ -57,9 +61,9 @@ class BackendManager:
             cmd = "source ~/.analyzer; "
             cmd += "cd {}; ".format(args_dir)
             if self.interactive:
-                cmd += "{} {};".format(self.app, script)
+                cmd += "julia {};".format(script)
             else:
-                cmd += "{} julia {};".format(self.app, script)
+                cmd += "{} julia {};".format(self.submit_cmd, script)
 
             _, stdout, _ = self.client.exec_command(cmd)
 
@@ -105,11 +109,12 @@ class BackendManager:
             if not submit or self.interactive:
                 cmd += "python {} {}".format(script_file, cmd_args)
             else:
-                cmd += "{} python '{}'".format(self.app, script_file, cmd_args)
+                cmd += "{} python '{} {}'".format(self.submit_cmd, script_file, cmd_args)
             print(cmd)
 
             _, stdout, _ = self.client.exec_command(cmd)
 
+            # print(stdout.readlines())
             if stdout.channel.recv_exit_status() == 0:
                 return 0
             print("Error: ", stdout.channel.recv_exit_status())
@@ -119,6 +124,18 @@ class BackendManager:
 
     def cancel_job(self, job_name):
         pass
+
+    def run_cmd(self, cmd):
+        if self.connected:
+            print(cmd)
+            _, stdout, _ = self.client.exec_command(cmd)
+
+            if stdout.channel.recv_exit_status() == 0:
+                return 0
+            print("Error: ", stdout.channel.recv_exit_status())
+            return 1
+
+        return -1
 
     def debug_cmd(self, cmd):
         call = 'ssh -l {} {}'.format(self.uname, self.server).split()
