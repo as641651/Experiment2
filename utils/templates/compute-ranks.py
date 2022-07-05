@@ -14,6 +14,7 @@ if __name__ == "__main__":
 
    parser = argparse.ArgumentParser(description='compute ranks ')
    parser.add_argument('--rep_steps', type=int, default=3)
+   parser.add_argument('--max_rep', type=int, default=50)
    parser.add_argument('--eps', type=float, default=0.001)
    parser.add_argument('--threads', type=int, default=4)
    parser.add_argument('--algs', nargs='+', default=[])
@@ -26,6 +27,7 @@ if __name__ == "__main__":
    threads = args.threads
    rep_steps = args.rep_steps
    eps = args.eps
+   max_rep = args.max_rep
 
    dc = DataCollector(this_dir)
 
@@ -46,7 +48,8 @@ if __name__ == "__main__":
                                                     dc,
                                                     algs_seq_h0,
                                                     rep_steps,
-                                                    eps)
+                                                    eps,
+                                                    max_rep)
 
 
    ranks = rank_variants.calculate_ranks()

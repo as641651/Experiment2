@@ -3,7 +3,8 @@ from case_duration_manager import CaseDurationsManager
 from rank_variants import RankVariants
 import numpy as np
 
-def measure_and_rank(runner_competing, data_collector, alg_seq_h0, rep_steps=3, eps=0.001):
+
+def measure_and_rank(runner_competing, data_collector, alg_seq_h0, rep_steps=3, eps=0.001, max_rep=50):
     num_measurements = 0
     run_id = 0
     cm = CaseDurationsManager()
@@ -16,7 +17,7 @@ def measure_and_rank(runner_competing, data_collector, alg_seq_h0, rep_steps=3, 
     mean_rank_log.append(mean_rank_h0.set_index('case:concept:name'))
 
     norm = 1
-    while norm > eps:
+    while norm > eps and run_id * rep_steps < max_rep:
 
         ret = runner_competing.measure_competing_variants(run_id=run_id, reps=rep_steps)
 
@@ -34,7 +35,10 @@ def measure_and_rank(runner_competing, data_collector, alg_seq_h0, rep_steps=3, 
         df = mean_rank_h1.merge(mean_rank_h0, on=['case:concept:name'])
         x = df.iloc[:, -1].values
         y = df.iloc[:, -2].values
-        norm = np.linalg.norm(x - y)
+
+        xc = np.convolve(x, [1, -1], 'valid')
+        yc = np.convolve(y, [1, -1], 'valid')
+        norm = np.linalg.norm(xc - yc, 2) / len(alg_seq_h0)
         print("norm: {}".format(norm))
 
         mean_rank_h0 = mean_rank_h1.copy()
@@ -48,3 +52,4 @@ def measure_and_rank(runner_competing, data_collector, alg_seq_h0, rep_steps=3, 
     print("Number of measurements: {}".format(num_measurements))
 
     return rank_variants, cm, pd.concat(mean_rank_log, axis=1)
+

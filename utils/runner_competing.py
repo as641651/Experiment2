@@ -46,10 +46,11 @@ class RunnerCompeting:
 
         return -1
 
-    def compute_ranks(self, rep_steps=3, eps=0.001):
-        cmd_args = "--rep_steps {rep_steps} --eps {eps} --threads {threads} --algs {algs}".format(rep_steps=rep_steps,
+    def compute_ranks(self, rep_steps=3, eps=0.001, max_rep=50):
+        cmd_args = "--rep_steps {rep_steps} --eps {eps} --threads {threads} --algs {algs} --max_rep {max_rep}".format(rep_steps=rep_steps,
                                                                                                   eps=eps,
                                                                                                   threads=self.threads,
+                                                                                                  max_rep=max_rep,
                                                                                                   algs=" ".join(
                                                                                                       self.competing_variants))
         script_file = "compute-ranks.py"
