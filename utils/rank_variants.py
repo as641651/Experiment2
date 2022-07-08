@@ -20,8 +20,16 @@ class RankVariants:
     def get_measurements(self, alg):
         return self.measurements[alg]
 
+    def remove_outliers(self, x):
+        x = np.array(x)
+        q1, q2 = np.percentile(x,  [25,75])
+        iqr = q2-q1
+        fence_low = q1 - 1.5*iqr
+        fence_high = q2 + 1.5*iqr
+        return x[(x>fence_low) & (x <fence_high)]
+
     def get_quartiles(self, measurements, q_max=75, q_min=25):
-        return np.percentile(measurements, [q_max, q_min])
+        return np.percentile(self.remove_outliers(measurements), [q_max, q_min])
 
     def compareAlgs(self, alg1, alg2, q_max=75, q_min=25):
         #print(alg1, alg2)
@@ -100,8 +108,8 @@ class RankVariants:
 
 
     def calculate_ranks(self):
-        q_maxs = [95, 90, 85, 80, 75, 70, 65]
-        q_mins = [5, 10, 15, 20, 25, 30, 35]
+        q_maxs = [95, 90, 85, 80, 75, 70, 65, 55]
+        q_mins = [5, 10, 15, 20, 25, 30, 35, 5]
         ranks = []
         for q_max, q_min in zip(q_maxs, q_mins):
             ranks.append(self.sortAlgs(q_max, q_min).set_index('case:concept:name'))
