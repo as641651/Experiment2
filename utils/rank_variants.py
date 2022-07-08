@@ -109,7 +109,7 @@ class RankVariants:
 
     def calculate_ranks(self):
         q_maxs = [95, 90, 85, 80, 75, 70, 65, 55]
-        q_mins = [5, 10, 15, 20, 25, 30, 35, 5]
+        q_mins = [5, 10, 15, 20, 25, 30, 35, 45]
         ranks = []
         for q_max, q_min in zip(q_maxs, q_mins):
             ranks.append(self.sortAlgs(q_max, q_min).set_index('case:concept:name'))
